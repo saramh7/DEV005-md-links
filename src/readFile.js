@@ -1,20 +1,39 @@
 const fs = require('fs');
 const path = require('path');
 
-// funcion que lee archivo
-function readFile(filePath) {
+//Lee información del archivo
+function readFileContent(filePath) {
   return fs.readFileSync(filePath, 'utf8');
 }
 
-// funcion que indica si es un archivo MD
-
+//Indica si el archivo tiene extensión .md
 function isMarkdownFile(filePath) {
   const fileExtension = path.extname(filePath);
   return fileExtension === '.md';
 }
-// funcion que utiliza una expresión regular para extraer enlaces de contenido de Md 
-//  y devuelve un array de objetos que contienen los textos de los enlaces y sus respectivas URLs.
 
+//Indica si ruta corresponde a un directorio o a un archivo
+function pathIsAFile(filePath) {
+  return new Promise((resolve, reject) => {
+    fs.stat(filePath, (err, stats) => {
+      if (err) {
+        console.error('Error al obtener la información del archivo:', err);
+        reject(false);
+      } else {
+        if (stats.isFile()) {
+          resolve(true);
+        } else {
+          reject(false);
+        }
+      }
+    });
+  });
+}
+
+/** 
+ * Función que devuelve un array de objetos que contienen los textos de los enlaces y sus respectivas URLs.
+ * Utiliza una expresión regular para extraer enlaces desde el contenido del archivo .md 
+ * */
 function findLinksInMarkdown(content) {
   const regex = /\[([^\]]*)\]\((https?:\/\/[^\)]*)\)/gm;
   const links = [];
@@ -30,4 +49,4 @@ function findLinksInMarkdown(content) {
 }
 
 
-module.exports = { readFile, isMarkdownFile, findLinksInMarkdown };
+module.exports = { readFileContent, isMarkdownFile, findLinksInMarkdown, pathIsAFile };

@@ -1,55 +1,53 @@
 const axios = require('axios');
-const { findLinksInMarkdown } = require('./readFile')
 
+function checkLinkHttpStatus(linkData) {
+  return axios.head(linkData.href)
+    .then((response) => {
+      linkData.status = response.status;
+      linkData.ok = (response.status >= 200 && response.status < 400) ? 'ok' : 'fail';
+      return linkData;
+    })
+    .catch((error) => {
+      if (error.response) {
+        linkData.status = error.response.status;
+      } else if (error.request) {
+        linkData.status = error.code;
+      } else {
+        linkData.status = error.message;
+      }
+      linkData.ok = 'fail';
+      return linkData;
+    });
+}
 
-function validateLinks(filePath, options = { validate: false }) {
-  return new Promise((resolve, rejects) => {
-    try {
-      const links = [];
-      const extractLinks = findLinksInMarkdown(filePath);
+function validateLinks(links, options, filePath) {
+  // función que recibe un link y crea objeto con formato de retorno solicitado
+  // si la opción de validación está activa llama a checkLinkHttpStatus para verificar la url
+  const processLink = (link) => {
+    const linkData = {
+      href: link.url,
+      text: link.text,
+      filePath: filePath,
+    };
 
-      extractLinks.forEach((link) => {
-        const linkObj = {
-          href: Object.values(link)[0],
-          text: Object.keys(link)[0],
-          file: filePath,
-        };
-
-        if (options.validate) {
-          axios.head(linkObj.href)
-            .then((response) => {
-              linkObj.status = response.status;
-              linkObj.ok = response.status >= 200 && response.status < 400 ? "ok" : "fail";
-              links.push(linkObj);
-              if (links.length === extractLinks.length) {
-                resolve(links);
-              }
-            })
-            .catch((error) => {
-              if (error.response) {
-                linkObj.status = error.response.status;
-              } else if (error.request) {
-                linkObj.status = error.code;
-              } else {
-                linkObj.status = error.message;
-              }
-              linkObj.ok = "fail";
-              links.push(linkObj);
-              if (links.length === extractLinks.length) {
-                resolve(links);
-              }
-            });
-        } else {
-          links.push(linkObj);
-          if (links.length === extractLinks.length) {
-            resolve(links);
-          }
-        }
-      });
-    } catch (error) {
-      rejects('No pudimos procesar tu archivo.')
+    if (options.validate === true) {
+      const linkDataWithStatus = checkLinkHttpStatus(linkData)
+      return linkDataWithStatus;
+    } else {
+      return linkData
     }
-  });
+  };
+
+  const promises = links.map(link => processLink(link));
+
+  return Promise.all(promises)
+    .then(arrayLinks => {
+      return arrayLinks;
+    })
+    .catch(error => {
+      console.error('Error al validar los enlaces:', error);
+      throw error;
+    });
 }
 
 module.exports = validateLinks;

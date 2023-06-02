@@ -10,7 +10,7 @@
     "test": "test"
   },
   "scripts": {
-    "test": "jest --watch",
+    "test": "jest",
     "test1": "jest --coverage",
     "test2": "echo \"Error: no test specified\" && exit 1"
   },
