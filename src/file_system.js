@@ -2,14 +2,6 @@ const { error } = require('console');
 const fs = require('fs');
 const path = require('path');
 
-// fs.writeFile('./modulos/data1.txt', 'Sara Martinez', (error) => {
-//   if (error) {
-//     console.log(`Error: ${error}`);
-//   }
-// });
-
-// fs.readFile('./README.md', 'utf-8', (error, data) => { console.log(data) });
-
 const directorio = './modulos';
 
 fs.readdir(directorio, (error, archivos) => {

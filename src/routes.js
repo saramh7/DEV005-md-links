@@ -1,11 +1,12 @@
+
 const fs = require('fs');
 const path = require('path');
-const { isAbsolute } = require('path');
 
 
 // funcion para validar una ruta
 function pathValid(path) {
-  return fs.existsSync(path);
+  if (!fs.existsSync(path))
+    return console.log('No se encuentra ruta');
 }
 
 // funcion que verifica si una ruta es absoluta o no
@@ -18,7 +19,6 @@ function pathInfo(filePath) {
       type: "Invalid"
     };
   }
-
   const isPathAbsolute = path.isAbsolute(filePath);
   const absolutePath = isPathAbsolute ? filePath : path.resolve(filePath);
 
@@ -29,4 +29,5 @@ function pathInfo(filePath) {
   };
 }
 
-module.exports = pathInfo;
+
+module.exports = { pathInfo, pathValid }; 

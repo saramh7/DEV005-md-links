@@ -1,7 +1,7 @@
 const pathInfo = require("./routes");
 
-const path1 = '././../modulos/data1.txt';
-const path2 = './././../README.md';
+const path1 = './jajaja';
+const path2 = './README.md';
 
 const pathInfo1 = pathInfo(path1);
 const pathInfo2 = pathInfo(path2);
