@@ -1,55 +1,46 @@
-const axios = require('axios');
-const { extractLinksAndText } = require('./markdown')
-
+const { infoPath, convertToAbsolutePath } = require('./validateRoutes')
+const { readFileContent, isMarkdownFile, findLinksInMarkdown, pathIsAFile } = require('./readFile')
+const validateLinks = require('./validateLinks')
 
 function mdLinks(filePath, options = { validate: false }) {
+  console.log('Procesando.....')
   return new Promise((resolve, rejects) => {
     try {
-      const links = [];
-      const extractLinks = extractLinksAndText(filePath);
+      if (infoPath(filePath)) {
+        const absolutePath = convertToAbsolutePath(filePath)
+        console.log('Path Absoluto:', absolutePath);
 
-      extractLinks.forEach((link) => {
-        const linkObj = {
-          href: Object.values(link)[0],
-          text: Object.keys(link)[0],
-          file: filePath,
-        };
+        pathIsAFile(absolutePath)
+          .then((result) => {
+            const isMD = isMarkdownFile(absolutePath)
+            if (isMD === true) {
+              console.log('Procesando Archivo Markdown...');
+              const content = readFileContent(absolutePath);
 
-        if (options.validate) {
-          axios.head(linkObj.href)
-            .then((response) => {
-              linkObj.status = response.status;
-              linkObj.ok = response.status >= 200 && response.status < 400 ? "ok" : "fail";
-              links.push(linkObj);
-              if (links.length === extractLinks.length) {
-                resolve(links);
-              }
-            })
-            .catch((error) => {
-              if (error.response) {
-                linkObj.status = error.response.status;
-              } else if (error.request) {
-                linkObj.status = error.code;
+              console.log('Encontrando Links en el texto...');
+              const links = findLinksInMarkdown(content);
+
+              if (links.length > 0) {
+                console.log('Procesando Links...');
+                resolve(validateLinks(links, options, absolutePath))
               } else {
-                linkObj.status = error.message;
+                rejects('No se encontraron links en el texto del archivo.');
               }
-              linkObj.ok = "fail";
-              links.push(linkObj);
-              if (links.length === extractLinks.length) {
-                resolve(links);
-              }
-            });
-        } else {
-          links.push(linkObj);
-          if (links.length === extractLinks.length) {
-            resolve(links);
-          }
-        }
-      });
+            } else {
+              rejects('El archivo proporcionado no tiene extensión .md.');
+            }
+          })
+          .catch((error) => {
+            rejects('La ruta proporcionada es un directorio.');
+          });
+
+      } else {
+        rejects(`No se encuentra ruta: ${filePath}`)
+      }
     } catch (error) {
-      rejects('No pudimos procesar tu archivo.')
+      rejects('No pudimos procesar tu archivo. Por favor verifica la ruta proporcionada')
     }
-  });
+  })
 }
 
 module.exports = mdLinks;
