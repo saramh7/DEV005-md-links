@@ -8,9 +8,10 @@
 * [4. Consideraciones generales](#4-consideraciones-generales)
 * [5. Criterios de aceptación mínimos del proyecto](#5-criterios-de-aceptación-mínimos-del-proyecto)
 * [6. Entregables](#6-entregables)
-* [7. Pistas, tips y lecturas complementarias](#8-pistas-tips-y-lecturas-complementarias)
-* [8. Checklist](#9-checklist)
-* [9. Achicando el problema](#10-achicando-el-problema)
+* [7. Hacker edition](#7-hacker-edition)
+* [8. Pistas, tips y lecturas complementarias](#8-pistas-tips-y-lecturas-complementarias)
+* [9. Checklist](#9-checklist)
+* [10. Achicando el problema](#10-achicando-el-problema)
 
 ***
 
@@ -35,7 +36,7 @@ algunas estadísticas.
 
 ## 2. Resumen del proyecto
 
-En este proyecto crearás una herramienta de línea de comando así como tu
+En este proyecto crearás una herramienta de línea de comando (CLI) así como tu
 propia librería (o biblioteca - library) en JavaScript.
 
 En esta oportunidad nos alejamos un poco del navegador para construir un
@@ -98,6 +99,14 @@ Reflexiona y luego marca los objetivos que has llegado a entender y aplicar en t
   * [Funciones clásicas](https://curriculum.laboratoria.la/es/topics/javascript/03-functions/01-classic)
   * [Arrow Functions](https://curriculum.laboratoria.la/es/topics/javascript/03-functions/02-arrow)
   * [Funciones — bloques de código reutilizables - MDN](https://developer.mozilla.org/es/docs/Learn/JavaScript/Building_blocks/Functions)
+</p></details>
+
+- [ ] **Recursión o recursividad**
+
+  <details><summary>Links</summary><p>
+
+  * [Píldora recursión - YouTube Laboratoria Developers](https://www.youtube.com/watch?v=lPPgY3HLlhQ)
+  * [Recursión o Recursividad - Laboratoria Developers en Medium](https://medium.com/laboratoria-developers/recursi%C3%B3n-o-recursividad-ec8f1a359727)
 </p></details>
 
 - [ ] **Módulos de CommonJS**
@@ -227,23 +236,31 @@ Reflexiona y luego marca los objetivos que has llegado a entender y aplicar en t
 
 * El rango de tiempo estimado para completar el proyecto es de 4 a 5 Sprints.
 
-* La **librería** debe estar implementados en JavaScript para ser ejecutados con
+* La **librería** y el **script ejecutable** (herramienta de línea de comando -
+  CLI) deben estar implementados en JavaScript para ser ejecutados con
   Node.js. **Está permitido usar librerías externas**.
+
+* Tu módulo **debe ser instalable** via `npm install <github-user>/md-links`. Este
+  módulo debe incluir tanto un _ejecutable_ que podamos invocar en la línea de
+  comando como una interfaz que podamos importar con `require` para usarlo
+  programáticamente.
 
 * Los **tests unitarios** deben cubrir un mínimo del 70% de _statements_,
   _functions_, _lines_ y _branches_. Te recomendamos explorar [Jest](https://jestjs.io/)
-  para tus pruebas unitarias (no es requisito para tener PF).
+  para tus pruebas unitarias.
 
 * Para este proyecto **no está permitido** utilizar `async/await`.
 
 * Para este proyecto te sugerimos **no utilizar** la versión síncrona
 de la función para leer archivos, `readFileSync`, y en cambio intentar
-resolver este desafío de manera asíncrona, intenta resolver esto de forma asíncrona
-con `readFile`.
+resolver este desafío de manera asíncrona.
 
 * Para este proyecto es **opcional** el uso de ES Modules `(import/export)`, en el
   caso optes utilizarlo deberás de crear un script de `build` en el `package.json`
   que los transforme en `requires` y `module.exports` con ayuda de **babel**.
+
+* Para disminuir la complejidad de tu algoritmo recursivo, te recomendamos
+utilizar la versión síncrona de la función para leer directorios, `readdirSync`.
 
 ## 5. Criterios de aceptación mínimos del proyecto
 
@@ -276,7 +293,9 @@ considere necesarios.
 * `test/md-links.spec.js` debe contener los tests unitarios para la función
   `mdLinks()`. Tu inplementación debe pasar estos tets.
 
-## Este proyecto consta de
+## Este proyecto consta de DOS partes
+
+### 1) JavaScript API
 
 El módulo debe poder **importarse** en otros scripts de Node.js y debe ofrecer la
 siguiente interfaz:
@@ -336,13 +355,107 @@ mdLinks("./some/dir")
   .catch(console.error);
 ```
 
+### 2) CLI (Command Line Interface - Interfaz de Línea de Comando)
+
+El ejecutable de nuestra aplicación debe poder ejecutarse de la siguiente
+manera a través de la **terminal**:
+
+`md-links <path-to-file> [options]`
+
+Por ejemplo:
+
+```sh
+$ md-links ./some/example.md
+./some/example.md http://algo.com/2/3/ Link a algo
+./some/example.md https://otra-cosa.net/algun-doc.html algún doc
+./some/example.md http://google.com/ Google
+```
+
+El comportamiento por defecto no debe validar si las URLs responden ok o no,
+solo debe identificar el archivo markdown (a partir de la ruta que recibe como
+argumento), analizar el archivo Markdown e imprimir los links que vaya
+encontrando, junto con la ruta del archivo donde aparece y el texto
+que hay dentro del link (truncado a 50 caracteres).
+
+#### Options
+
+##### `--validate`
+
+Si pasamos la opción `--validate`, el módulo debe hacer una petición HTTP para
+averiguar si el link funciona o no. Si el link resulta en una redirección a una
+URL que responde ok, entonces consideraremos el link como ok.
+
+Por ejemplo:
+
+```sh
+$ md-links ./some/example.md --validate
+./some/example.md http://algo.com/2/3/ ok 200 Link a algo
+./some/example.md https://otra-cosa.net/algun-doc.html fail 404 algún doc
+./some/example.md http://google.com/ ok 301 Google
+```
+
+Vemos que el _output_ en este caso incluye la palabra `ok` o `fail` después de
+la URL, así como el status de la respuesta recibida a la petición HTTP a dicha
+URL.
+
+##### `--stats`
+
+Si pasamos la opción `--stats` el output (salida) será un texto con estadísticas
+básicas sobre los links.
+
+```sh
+$ md-links ./some/example.md --stats
+Total: 3
+Unique: 3
+```
+
+También podemos combinar `--stats` y `--validate` para obtener estadísticas que
+necesiten de los resultados de la validación.
+
+```sh
+$ md-links ./some/example.md --stats --validate
+Total: 3
+Unique: 3
+Broken: 1
+```
+
 ## 6. Entregables
 
-Tu librería md-links valida links de archivos .md
+Módulo instalable via `npm install <github-user>/md-links`. Este módulo debe
+incluir tanto **un ejecutable** como **una interfaz** que podamos importar con `require`
+para usarlo programáticamente.
+
+## 7. Hacker edition
+
+Las secciones llamadas _Hacker Edition_ son **opcionales**. Si **terminaste**
+con todo lo anterior y te queda tiempo, intenta completarlas. Así podrás
+profundizar y/o ejercitar más sobre los objetivos de aprendizaje del proyecto.
+
+* Puedes agregar la propiedad `line` a cada objeto `link` indicando en qué línea
+  del archivo se encontró el link.
+* Puedes agregar más estadísticas.
+* Integración continua con Travis o Circle CI.
 
 ***
 
-## 7. Pistas, tips y lecturas complementarias
+## 8. Pistas, tips y lecturas complementarias
+
+### FAQs
+
+#### ¿Cómo hago para que mi módulo sea _instalable_ desde GitHub?
+
+Para que el módulo sea instalable desde GitHub solo tiene que:
+
+* Estar en un repo público de GitHub
+* Contener un `package.json` válido
+
+Con el comando `npm install githubname/reponame` podemos instalar directamente
+desde GitHub. Ver [docs oficiales de `npm install` acá](https://docs.npmjs.com/cli/install).
+
+Por ejemplo, el [`course-parser`](https://github.com/Laboratoria/course-parser)
+que usamos para la currícula no está publicado en el registro público de NPM,
+así que lo instalamos directamente desde GitHub con el comando `npm install
+Laboratoria/course-parser`.
 
 ### Sugerencias de implementación
 
@@ -354,8 +467,15 @@ tanto usando librerías como implementando en VanillaJS.
 Por poner un ejemplo, el _parseado_ (análisis) del markdown para extraer los
 links podría plantearse de las siguientes maneras (todas válidas):
 
+* Usando un _módulo_ como [markdown-it](https://github.com/markdown-it/markdown-it),
+  que nos devuelve un arreglo de _tokens_ que podemos recorrer para identificar
+  los links.
 * Siguiendo otro camino completamente, podríamos usar
   [expresiones regulares (`RegExp`)](https://developer.mozilla.org/es/docs/Web/JavaScript/Guide/Regular_Expressions).
+* También podríamos usar una combinación de varios _módulos_ (podría ser válido
+  transformar el markdown a HTML usando algo como [marked](https://github.com/markedjs/marked)
+  y de ahí extraer los link con una librería de DOM como [JSDOM](https://github.com/jsdom/jsdom)
+  o [Cheerio](https://github.com/cheeriojs/cheerio) entre otras).
 * Usando un _custom renderer_ de [marked](https://github.com/markedjs/marked)
   (`new marked.Renderer()`).
 
@@ -388,8 +508,9 @@ si tienes dudas existenciales con respecto a estas decisiones. No existe una
 * [Leer un archivo](https://nodejs.org/api/fs.html#fs_fs_readfile_path_options_callback)
 * [Leer un directorio](https://nodejs.org/api/fs.html#fs_fs_readdir_path_options_callback)
 * [Path](https://nodejs.org/api/path.html)
+* [Linea de comando CLI](https://medium.com/netscape/a-guide-to-create-a-nodejs-command-line-package-c2166ad0452e)
 
-## 8. Checklist
+## 9. Checklist
 
 ### General
 
@@ -408,13 +529,20 @@ si tienes dudas existenciales con respecto a estas decisiones. No existe una
 * [ ] Implementa soporte para directorios
 * [ ] Implementa `options.validate`
 
+### CLI
+
+* [ ] Expone ejecutable `md-links` en el path (configurado en `package.json`)
+* [ ] Se ejecuta sin errores / output esperado
+* [ ] Implementa `--validate`
+* [ ] Implementa `--stats`
+
 ### Pruebas / tests
 
 * [ ] Pruebas unitarias cubren un mínimo del 70% de statements, functions,
   lines, y branches.
 * [ ] Pasa tests (y linters) (`npm test`).
 
-## 9. Achicando el problema
+## 10. Achicando el problema
 
 Un "superpoder" que esperamos puedas desarrollar durante el bootcamp
 es el de definir "mini-proyectos" que te acerquen paso a paso a
@@ -492,6 +620,10 @@ Intenta imprimir en consola la lista de archivos en una carpeta.
 
 La librería `FS` también te será útil aquí.
 
+**Recuerda**: Para disminuir la complejidad de tu algoritmo
+recursivo, te recomendamos utilizar la versión síncrona de
+la función para leer directorios, `readdirSync`.
+
 ### Une dos rutas
 
 Para poder acceder a carpetas y archivos será necesario que
@@ -505,6 +637,24 @@ por ejemplo, si queremos unir:
 2) ./test
 
 El resultado sería: /home/Laboratoria/test
+
+### Recursividad
+
+Este proyecto se ha de resolver de forma casi natural con
+**recursividad**.
+
+¿Por qué?.
+
+Porque no conocemos realmente cuantas carpetas y archivos
+tendremos que recorrer antes de terminar.
+
+Si recibes una ruta de carpeta, no sabrás de ante mano si
+dentro hay más carpetas o muchos archivos.
+
+Por ello, asegurate bien de entender de qué trata la
+recursividad y ver algunos ejemplos.
+
+Entre los recursos de este proyecto hay un video que te ayudará.
 
 ### Crea una promesa
 

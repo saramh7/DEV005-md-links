@@ -1,6 +1,6 @@
-const mdLinks = require('../src/md.links');
+const mdLinks = require('./src/md.links');
 
-const path = './testers';
+const path = './README_test.md';
 const options = { validate: true };
 
 mdLinks(path, options)

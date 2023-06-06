@@ -49,8 +49,8 @@ describe('validateLinks', () => {
 
     // Verificar que los resultados sean correctos
     expect(results).toEqual([
-      { href: 'https://example.com/link1', text: 'Link 1', filePath, status: 200, isOk: true },
-      { href: 'https://example.com/link2', text: 'Link 2', filePath, status: 200, isOk: true },
+      { href: 'https://example.com/link1', text: 'Link 1', filePath, status: 200, ok: 'ok' },
+      { href: 'https://example.com/link2', text: 'Link 2', filePath, status: 200, ok: 'ok' },
     ]);
   });
 
